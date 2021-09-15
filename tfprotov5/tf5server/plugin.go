@@ -17,7 +17,7 @@ import (
 // serve tfprotov5.ProviderServers as gRPC plugins for go-plugin.
 type GRPCProviderPlugin struct {
 	GRPCProvider func() tfprotov5.ProviderServer
-	opts         []ServeOpt
+	Opts         []ServeOpt
 	name         string
 }
 
@@ -42,6 +42,6 @@ func (p *GRPCProviderPlugin) GRPCClient(context.Context, *plugin.GRPCBroker, *gr
 // GRPCServer registers the gRPC provider server with the gRPC server that
 // go-plugin is standing up.
 func (p *GRPCProviderPlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
-	tfplugin5.RegisterProviderServer(s, New(p.name, p.GRPCProvider(), p.opts...))
+	tfplugin5.RegisterProviderServer(s, New(p.name, p.GRPCProvider(), p.Opts...))
 	return nil
 }

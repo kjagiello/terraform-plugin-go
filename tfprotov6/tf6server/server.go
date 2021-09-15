@@ -41,6 +41,7 @@ type ServeConfig struct {
 
 	disableLogInitStderr bool
 	disableLogLocation   bool
+	useLoggingSink       bool
 	envVar               string
 }
 
@@ -66,6 +67,13 @@ func WithDebug(ctx context.Context, config chan *plugin.ReattachConfig, closeCh 
 func WithGoPluginLogger(logger hclog.Logger) ServeOpt {
 	return serveConfigFunc(func(in *ServeConfig) error {
 		in.logger = logger
+		return nil
+	})
+}
+
+func WithLoggingSink() ServeOpt {
+	return serveConfigFunc(func(in *ServeConfig) error {
+		in.useLoggingSink = true
 		return nil
 	})
 }
@@ -131,7 +139,7 @@ func Serve(name string, serverFactory func() tfprotov6.ProviderServer, opts ...S
 		Plugins: plugin.PluginSet{
 			"provider": &GRPCProviderPlugin{
 				GRPCProvider: serverFactory,
-				opts:         opts,
+				Opts:         opts,
 				name:         name,
 			},
 		},
@@ -160,6 +168,7 @@ type server struct {
 
 	tflogSDKOpts tfsdklog.Options
 	tflogOpts    tflog.Options
+	useTFLogSink bool
 	name         string
 }
 
@@ -189,6 +198,10 @@ func (s *server) stoppableContext(ctx context.Context) context.Context {
 // loggingContext returns a context that wraps `ctx` and has
 // terraform-plugin-log loggers injected.
 func (s *server) loggingContext(ctx context.Context) context.Context {
+	if s.useTFLogSink {
+		ctx = tfsdklog.RegisterSink(ctx)
+	}
+
 	// generate a request ID
 	reqID, err := uuid.GenerateUUID()
 	if err != nil {
@@ -276,6 +289,7 @@ func New(name string, serve tfprotov6.ProviderServer, opts ...ServeOpt) tfplugin
 		tflogOpts:    options,
 		tflogSDKOpts: sdkOptions,
 		name:         name,
+		useTFLogSink: conf.useLoggingSink,
 	}
 }
 
