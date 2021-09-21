@@ -1,5 +1,5 @@
 ```release-note:feature
-Added support for [terraform-plugin-log](https://github.com/hashicorp/terraform-plugin-log) v0.1.0, injecting loggers for SDKs and the provider into requests and adding trace and error log lines to request handlers.
+Added support for [terraform-plugin-log](https://github.com/hashicorp/terraform-plugin-log) v0.2.0, injecting loggers for SDKs and the provider into requests and adding trace and error log lines to request handlers.
 ```
 
 ```release-note:breaking-change
