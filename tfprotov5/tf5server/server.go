@@ -217,6 +217,7 @@ func (s *server) loggingContext(ctx context.Context) context.Context {
 	ctx = tfsdklog.NewSubsystem(ctx, tflogSubsystemName, append(tfsdklog.Options{
 		tfsdklog.WithLevelFromEnv("TF", "LOG", "SDK", "PROTO"),
 	}, s.tflogSDKOpts...)...)
+	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, "tf_proto_version", "5")
 
 	// set up the provider logger
 	ctx = tfsdklog.NewRootProviderLogger(ctx, s.tflogOpts...)
