@@ -233,14 +233,14 @@ func (s *server) loggingContext(ctx context.Context) context.Context {
 
 	// set up the logger SDK loggers are derived from
 	ctx = tfsdklog.NewRootSDKLogger(ctx, append(tfsdklog.Options{
-		tfsdklog.WithLevelFromEnv("TF", "LOG", "SDK"),
+		tfsdklog.WithLevelFromEnv("TF_LOG_SDK"),
 	}, s.tflogSDKOpts...)...)
 	ctx = tfsdklog.With(ctx, logKeyRequestID, reqID)
 	ctx = tfsdklog.With(ctx, logKeyProviderAddress, s.name)
 
 	// set up our protocol-level subsystem logger
 	ctx = tfsdklog.NewSubsystem(ctx, tflogSubsystemName, append(tfsdklog.Options{
-		tfsdklog.WithLevelFromEnv("TF", "LOG", "SDK", "PROTO"),
+		tfsdklog.WithLevelFromEnv("TF_LOG_SDK_PROTO"),
 	}, s.tflogSDKOpts...)...)
 	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, logKeyProtocolVersion, "5")
 
@@ -286,7 +286,6 @@ func New(name string, serve tfprotov5.ProviderServer, opts ...ServeOpt) tfplugin
 	}
 	var sdkOptions tfsdklog.Options
 	var options tflog.Options
-	sdkOptions = append(sdkOptions, tfsdklog.WithLevelFromEnv("TF", "LOG", "SDK", "PROTO"))
 	if !conf.disableLogInitStderr {
 		sdkOptions = append(sdkOptions, tfsdklog.WithStderrFromInit())
 		options = append(options, tfsdklog.WithStderrFromInit())
@@ -299,14 +298,14 @@ func New(name string, serve tfprotov5.ProviderServer, opts ...ServeOpt) tfplugin
 	if envVar == "" {
 		addr, err := tfaddr.ParseRawProviderSourceString(name)
 		if err != nil {
-			log.Println("[ERROR] Error parsing provider name:", err)
+			log.Printf("[ERROR] Error parsing provider name %q: %s", name, err)
 		} else {
 			envVar = addr.Type
 		}
 	}
 	envVar = strings.ReplaceAll(envVar, "-", "_")
 	if envVar != "" {
-		options = append(options, tfsdklog.WithLogName(envVar), tflog.WithLevelFromEnv("TF", "LOG", "PROVIDER", envVar))
+		options = append(options, tfsdklog.WithLogName(envVar), tflog.WithLevelFromEnv("TF_LOG_PROVIDER", envVar))
 	}
 	return &server{
 		downstream:   serve,
