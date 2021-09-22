@@ -23,6 +23,31 @@ import (
 
 const tflogSubsystemName = "proto"
 
+// Global logging keys attached to all requests.
+//
+// Practitioners or tooling reading logs may be depending on these keys, so be
+// conscious of that when changing them.
+const (
+	// A unique ID for the RPC request
+	logKeyRequestID = "tf_req_id"
+
+	// The full address of the provider, such as
+	// registry.terraform.io/hashicorp/random
+	logKeyProviderAddress = "tf_provider_addr"
+
+	// The RPC being run, such as "ApplyResourceChange"
+	logKeyRPC = "tf_rpc"
+
+	// The type of resource being operated on, such as "random_pet"
+	logKeyResourceType = "tf_resource_type"
+
+	// The type of data source being operated on, such as "archive_file"
+	logKeyDataSourceType = "tf_data_source_type"
+
+	// The protocol version being used, as a string, such as "5"
+	logKeyProtocolVersion = "tf_proto_version"
+)
+
 // ServeOpt is an interface for defining options that can be passed to the
 // Serve function. Each implementation modifies the ServeConfig being
 // generated. A slice of ServeOpts then, cumulatively applied, render a full
@@ -210,40 +235,40 @@ func (s *server) loggingContext(ctx context.Context) context.Context {
 	ctx = tfsdklog.NewRootSDKLogger(ctx, append(tfsdklog.Options{
 		tfsdklog.WithLevelFromEnv("TF", "LOG", "SDK"),
 	}, s.tflogSDKOpts...)...)
-	ctx = tfsdklog.With(ctx, "tf_req_id", reqID)
-	ctx = tfsdklog.With(ctx, "tf_provider_addr", s.name)
+	ctx = tfsdklog.With(ctx, logKeyRequestID, reqID)
+	ctx = tfsdklog.With(ctx, logKeyProviderAddress, s.name)
 
 	// set up our protocol-level subsystem logger
 	ctx = tfsdklog.NewSubsystem(ctx, tflogSubsystemName, append(tfsdklog.Options{
 		tfsdklog.WithLevelFromEnv("TF", "LOG", "SDK", "PROTO"),
 	}, s.tflogSDKOpts...)...)
-	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, "tf_proto_version", "5")
+	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, logKeyProtocolVersion, "5")
 
 	// set up the provider logger
 	ctx = tfsdklog.NewRootProviderLogger(ctx, s.tflogOpts...)
-	ctx = tflog.With(ctx, "tf_req_id", reqID)
-	ctx = tflog.With(ctx, "tf_provider_addr", s.name)
+	ctx = tflog.With(ctx, logKeyRequestID, reqID)
+	ctx = tflog.With(ctx, logKeyProviderAddress, s.name)
 	return ctx
 }
 
 func rpcLoggingContext(ctx context.Context, rpc string) context.Context {
-	ctx = tfsdklog.With(ctx, "tf_rpc", rpc)
-	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, "tf_rpc", rpc)
-	ctx = tflog.With(ctx, "tf_rpc", rpc)
+	ctx = tfsdklog.With(ctx, logKeyRPC, rpc)
+	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, logKeyRPC, rpc)
+	ctx = tflog.With(ctx, logKeyRPC, rpc)
 	return ctx
 }
 
 func resourceLoggingContext(ctx context.Context, resource string) context.Context {
-	ctx = tfsdklog.With(ctx, "tf_resource_type", resource)
-	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, "tf_resource_type", resource)
-	ctx = tflog.With(ctx, "tf_resource_type", resource)
+	ctx = tfsdklog.With(ctx, logKeyResourceType, resource)
+	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, logKeyResourceType, resource)
+	ctx = tflog.With(ctx, logKeyResourceType, resource)
 	return ctx
 }
 
 func dataSourceLoggingContext(ctx context.Context, dataSource string) context.Context {
-	ctx = tfsdklog.With(ctx, "tf_data_source_type", dataSource)
-	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, "tf_data_source_type", dataSource)
-	ctx = tflog.With(ctx, "tf_data_source_type", dataSource)
+	ctx = tfsdklog.With(ctx, logKeyDataSourceType, dataSource)
+	ctx = tfsdklog.SubsystemWith(ctx, tflogSubsystemName, logKeyDataSourceType, dataSource)
+	ctx = tflog.With(ctx, logKeyDataSourceType, dataSource)
 	return ctx
 }
 
