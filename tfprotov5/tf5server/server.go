@@ -96,6 +96,9 @@ func WithGoPluginLogger(logger hclog.Logger) ServeOpt {
 	})
 }
 
+// WithLoggingSink returns a ServeOpt that will enable the logging sink, which
+// is used in test frameworks to control where terraform-plugin-log output is
+// written and at what levels, mimicking Terraform's logging sink behaviors.
 func WithLoggingSink() ServeOpt {
 	return serveConfigFunc(func(in *ServeConfig) error {
 		in.useLoggingSink = true
